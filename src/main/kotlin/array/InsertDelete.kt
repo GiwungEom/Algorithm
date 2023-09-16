@@ -2,12 +2,19 @@ package array
 
 fun main() {
 
-    fun Array<Int?>.insert(index: Int, data: Int) {
+    fun Array<Int?>.insertExtraVariable(index: Int, data: Int) {
         var prevData = this[index]
         for (i in index until size - 1) {
             val nextData = this[i + 1]
             this[i + 1] = prevData
             prevData = nextData
+        }
+        this[index] = data
+    }
+
+    fun Array<Int?>.insert(index: Int, data: Int) {
+        for (i in lastIndex - 1 downTo index) {
+            this[i + 1] = this[i]
         }
         this[index] = data
     }
@@ -33,10 +40,13 @@ fun main() {
 //    printArr(arr, len);
 
         println(array.joinToString())
+//        array.insertExtraVariable(3, 40)
         array.insert(3, 40)
         println(array.joinToString())
+//        array.insertExtraVariable(1, 50)
         array.insert(1, 50)
         println(array.joinToString())
+//        array.insertExtraVariable(0, 15)
         array.insert(0, 15)
         println(array.joinToString())
     }
