@@ -54,7 +54,6 @@ fun main() {
     fun status(): Int {
         var x = -1; var y = -1
         var cnt1 = 0 // 빙산의 개수
-        // 빙산이 남아있는 아무 칸이나 선택
 
         // area 에서 빙산 갯수 세기
         for (i in 0 until n) {
