@@ -1,5 +1,12 @@
 package graph.bfs
 
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
+import java.util.*
+import kotlin.math.max
+
 
 /**
  * 문제
@@ -69,4 +76,144 @@ package graph.bfs
 
 fun main() {
 
+    data class Input(
+        val n: Int,
+        val m: Int
+    ) {
+        var area: Array<IntArray> = Array(size = n) { IntArray(size = m) }
+    }
+
+    fun findStartPoint(area: Array<IntArray>): Pair<Int, Int> {
+        repeat(area.size) { x ->
+            repeat(area[x].size) { y ->
+                if (area[x][y] > 0) return x to y
+            }
+        }
+        throw NoSuchElementException()
+    }
+
+    fun checkBound(pos: Pair<Int, Int>, input: Input): Boolean =
+        pos.first !in 0 until input.n && pos.second !in 0 until input.m
+
+    fun countIceberg(area: Array<IntArray>): Int {
+        var count = 0
+        repeat(area.size) { x ->
+            repeat(area[x].size) { y ->
+                if (area[x][y] > 0) count++
+            }
+        }
+        return count
+    }
+
+    // 연결 된 빙산 area 체크
+    fun countIcebergBfs(input: Input): Int {
+        val vis: Array<IntArray> = Array(size = input.n) { IntArray(size = input.m) }
+        val queue: Queue<Pair<Int, Int>> = LinkedList()
+        val dx = intArrayOf(1, 0, -1, 0)
+        val dy = intArrayOf(0, 1, 0, -1)
+
+        var connectedIcebergCount = 0
+
+        try {
+            val startPos = findStartPoint(input.area)
+            queue.add(startPos)
+            vis[startPos.first][startPos.second] = 1
+        } catch (_: NoSuchElementException) { }
+
+        while (queue.isNotEmpty()) {
+            val cur = queue.remove()
+            ++connectedIcebergCount
+
+            for (i in 0..3) {
+                val next = cur.first + dx[i] to cur.second + dy[i]
+
+                if (checkBound(next, input)) continue
+                if (input.area[next.first][next.second] == 0 || vis[next.first][next.second] != 0) continue
+
+                queue.add(next)
+                vis[next.first][next.second] = 1
+            }
+        }
+
+        return connectedIcebergCount
+    }
+
+    // 0 - 같음
+    // 1 - 다름
+    // 2 - 끝남
+    fun checkIceburgState(input: Input): Int {
+        val icebergCount = countIceberg(input.area)
+        val connectedIcebergCount = countIcebergBfs(input)
+        return if (icebergCount == 0) 2
+        else if (icebergCount == connectedIcebergCount) 0
+        else 1
+    }
+
+    fun countSea(input: Input): Array<IntArray> {
+        val seaCount: Array<IntArray> = Array(size = input.n) { IntArray(size = input.m) }
+        val dx = intArrayOf(1, 0, -1, 0)
+        val dy = intArrayOf(0, 1, 0, -1)
+
+        repeat(input.n) { x ->
+            repeat(input.m) { y ->
+                if (input.area[x][y] > 0) {
+                    val cur = x to y
+                    for (i in 0..3) {
+                        val next = cur.first + dx[i] to cur.second + dy[i]
+                        if (checkBound(next, input) || input.area[next.first][next.second] > 0) continue
+                        seaCount[cur.first][cur.second]++
+                    }
+                }
+            }
+        }
+        return seaCount
+    }
+
+    fun meltingIceburg(seaCount: Array<IntArray>, input: Input): Array<IntArray> {
+        repeat(input.n) { x ->
+            repeat(input.m) { y ->
+                input.area[x][y] = max(0, input.area[x][y] - seaCount[x][y])
+            }
+        }
+        return input.area
+    }
+
+    val bufferedReader = BufferedReader(InputStreamReader(System.`in`))
+    val bufferedWriter = BufferedWriter(OutputStreamWriter(System.out))
+
+    val fline = bufferedReader.readLine()
+    var tokenizer = StringTokenizer(fline)
+    val n = tokenizer.nextToken().toInt()
+    val m = tokenizer.nextToken().toInt()
+
+    val input = Input(n, m)
+
+    repeat(n) { x ->
+        val line = bufferedReader.readLine()
+        tokenizer = StringTokenizer(line)
+        repeat(m) { y ->
+            tokenizer.nextToken().toInt().let {
+                input.area[x][y] = it
+            }
+        }
+    }
+
+    var year = 0
+    while (true) {
+        year++
+
+        input.area = meltingIceburg(countSea(input), input)
+
+        val state = checkIceburgState(input)
+        if (state == 1) break
+        else if (state == 2) {
+            year = 0
+            break
+        }
+        else continue
+    }
+    bufferedWriter.append(year.toString()).appendLine()
+    bufferedWriter.flush()
+    bufferedWriter.close()
+    bufferedReader.close()
 }
