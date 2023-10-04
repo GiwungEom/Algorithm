@@ -3,11 +3,8 @@ package bfs
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
 import kotlin.math.min
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * 여러 섬으로 이루어진 나라가 있다. 이 나라의 대통령은 섬을 잇는 다리를 만들겠다는 공약으로 인기몰이를 해 당선될 수 있었다. 하지만 막상 대통령에 취임하자,
@@ -147,89 +144,67 @@ class TestBOJ2146_TDD {
     @Test
     fun testBuildBridge() {
         input.area = markAreaNumber(input)
-        val bridgeLength = buildBridge(1, 4 to 4)
+        val bridgeLength = buildBridge(input)
         assertEquals(3, bridgeLength)
     }
 
-    @Test
-    fun testGetStartPoints() {
-        /**
-         * val areaResult = """
-         *              0 1 2 3 4 5 6 7 8 9
-         *    0         1 1 1 0 0 0 0 2 2 2
-         *    1         1 1 1 1 0 0 0 0 2 2
-         *    2         1 0 1 1 0 0 0 0 2 2
-         *    3         0 0 1 1 1 0 0 0 0 2
-         *    4         0 0 0 1 0 0 0 0 0 2
-         *    5         0 0 0 0 0 0 0 0 0 2
-         *    6         0 0 0 0 0 0 0 0 0 0
-         *    7         0 0 0 0 3 3 0 0 0 0
-         *    8         0 0 0 0 3 3 3 0 0 0
-         *    9         0 0 0 0 0 0 0 0 0 0
-         *         """.trimIndent()
-         */
-        val expect: MutableMap<Int, Set<Pair<Int, Int>>> = HashMap()
-        expect.put(1, setOf(3 to 0, 2 to 1, 3 to 1, 4 to 2, 5 to 3, 4 to 4, 3 to 5, 2 to 4, 1 to 4, 0 to 3))
-        expect.put(2, setOf(0 to 6, 1 to 7, 2 to 7, 3 to 8, 4 to 8, 5 to 8, 6 to 9))
-        expect.put(3, setOf(8 to 3, 7 to 3, 6 to 4, 6 to 5, 7 to 6, 8 to 7, 9 to 4, 9 to 5, 9 to 6))
-
-        val actual = HashMap<Int, Set<Pair<Int, Int>>>()
-        markAreaNumber(input, actual)
-        repeat(3) {
-            assertEquals(expect.getValue(it + 1).size, actual.getValue(it + 1).size)
-            assertTrue(expect.getValue(it + 1).containsAll(actual.getValue(it + 1)))
-        }
-    }
-
-    @Test
-    fun testGetMinimumBridgeCount() {
-        val startPoints = HashMap<Int, Set<Pair<Int, Int>>>()
-        input.area = markAreaNumber(input, startPoints)
-        val keys = startPoints.keys
-        var minCount: Int = Int.MAX_VALUE
-        for (key in keys) {
-            startPoints.getValue(key).forEach {
-                minCount = min(minCount, buildBridge(key, it))
-            }
-        }
-        assertEquals(3, minCount)
-    }
-
     fun checkBound(position: Pair<Int, Int>, input: Input) = position.first !in 0 until input.n || position.second !in 0 until input.m
-    private fun buildBridge(startArea: Int, start: Pair<Int, Int>): Int {
-        val vis: Array<IntArray> = Array(size = input.n) { IntArray(size = input.m) }
+    private fun buildBridge(input: Input): Int {
+        val dist: Array<IntArray> = Array(size = input.n) { IntArray(size = input.m) { -1 } }
+
         val queue: Queue<Pair<Int, Int>> = LinkedList()
         val dx = intArrayOf(1, 0, -1, 0)
         val dy = intArrayOf(0, 1, 0, -1)
+        var ans = Int.MAX_VALUE
 
-        queue.add(start)
-        vis[start.first][start.second] = 1
+        for (i in 0 until input.n) {
+            for (j in 0 until input.n) {
+                if (input.area[i][j] != 0) {
+                    queue.add(i to j)
+                    dist[i][j] = 0
+                }
 
-        while (queue.isNotEmpty()) {
-            val cur = queue.remove()
+                var found = false
+                while (queue.isNotEmpty() && !found) {
+                    val cur = queue.remove()
 
-            for (i in 0..3) {
-                val next = cur.first + dx[i] to cur.second + dy[i]
-                if (checkBound(next, input)) continue
-                if (input.area[next.first][next.second] == startArea || vis[next.first][next.second] > 0) continue
-                if (input.area[next.first][next.second] != 0) return vis[cur.first][cur.second]
-                vis[next.first][next.second] = vis[cur.first][cur.second] + 1
-                queue.add(next)
+                    for (dir in 0..3) {
+                        val next = cur.first + dx[dir] to cur.second + dy[dir]
+
+                        if (checkBound(next, input)) continue
+                        if (input.area[i][j] == input.area[next.first][next.second] || dist[next.first][next.second] >= 0) continue
+                        if (input.area[next.first][next.second] != 0 && input.area[i][j] != input.area[next.first][next.second]) {
+                            ans = min(ans, dist[cur.first][cur.second])
+                            while (queue.isNotEmpty()) {
+                                queue.remove()
+                            }
+                            found = true
+                            break
+                        }
+
+                        queue.add(next)
+                        dist[next.first][next.second] = dist[cur.first][cur.second] + 1
+                    }
+                }
+
+                dist.forEachIndexed { x, ints ->
+                    ints.forEachIndexed { y, _ ->
+                        dist[x][y] = -1
+                    }
+                }
             }
         }
-        return 0
+        return ans
     }
 
     private fun markAreaNumber(
-        input: Input,
-        startPointsMap: MutableMap<Int, Set<Pair<Int, Int>>> = HashMap()
+        input: Input
     ): Array<IntArray> {
         val vis: Array<IntArray> = Array(size = input.n) { IntArray(size = input.m)}
         val queue: Queue<Pair<Int, Int>> = LinkedList()
         val dx = intArrayOf(1, 0, -1, 0)
         val dy = intArrayOf(0, 1, 0, -1)
         var areaNumber = 0
-        lateinit var startPoints: MutableSet<Pair<Int, Int>>
 
         repeat(input.n) { x ->
             repeat(input.m) { y ->
@@ -238,7 +213,6 @@ class TestBOJ2146_TDD {
                     vis[x][y] = 1
                     areaNumber++
                     input.area[x][y] = areaNumber
-                    startPoints = HashSet()
                 }
 
                 while (queue.isNotEmpty()) {
@@ -247,7 +221,6 @@ class TestBOJ2146_TDD {
                         val next = cur.first + dx[i] to cur.second + dy[i]
                         if (checkBound(next, input)) continue
                         if (input.area[next.first][next.second] == 0) {
-                            startPoints.add(next)
                             continue
                         }
                         if (vis[next.first][next.second] == 1) continue
@@ -257,7 +230,6 @@ class TestBOJ2146_TDD {
                         queue.add(next)
                     }
                 }
-                startPointsMap.put(areaNumber, startPoints)
             }
         }
         return input.area

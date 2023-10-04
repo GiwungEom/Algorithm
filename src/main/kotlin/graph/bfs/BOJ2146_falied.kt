@@ -5,8 +5,6 @@ import java.io.BufferedWriter
 import java.io.InputStreamReader
 import java.io.OutputStreamWriter
 import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.HashSet
 import kotlin.math.min
 
 fun main() {
@@ -18,41 +16,65 @@ fun main() {
         var area: Array<IntArray> = Array(size = n) { IntArray(size = m) }
     }
 
-    fun checkBound(position: Pair<Int, Int>, input: Input) = position.first !in 0 until input.n || position.second !in 0 until input.m
-    fun buildBridge(startArea: Int, start: Pair<Int, Int>, input: Input): Int {
+    fun checkBound(position: Pair<Int, Int>, input: Input) =
+        position.first !in 0 until input.n || position.second !in 0 until input.m
+
+    fun buildBridge(input: Input): Int {
+        val dist: Array<IntArray> = Array(size = input.n) { IntArray(size = input.m) { -1 } }
+
+        val queue: Queue<Pair<Int, Int>> = LinkedList()
+        val dx = intArrayOf(1, 0, -1, 0)
+        val dy = intArrayOf(0, 1, 0, -1)
+        var ans = Int.MAX_VALUE
+
+        for (i in 0 until input.n) {
+            for (j in 0 until input.n) {
+                if (input.area[i][j] != 0) {
+                    queue.add(i to j)
+                    dist[i][j] = 0
+                }
+
+                var found = false
+                while (queue.isNotEmpty() && !found) {
+                    val cur = queue.remove()
+
+                    for (dir in 0..3) {
+                        val next = cur.first + dx[dir] to cur.second + dy[dir]
+
+                        if (checkBound(next, input)) continue
+                        if (input.area[i][j] == input.area[next.first][next.second] || dist[next.first][next.second] >= 0) continue
+                        if (input.area[next.first][next.second] != 0 && input.area[i][j] != input.area[next.first][next.second]) {
+                            ans = min(ans, dist[cur.first][cur.second])
+                            while (queue.isNotEmpty()) {
+                                queue.remove()
+                            }
+                            found = true
+                            break
+                        }
+
+                        queue.add(next)
+                        dist[next.first][next.second] = dist[cur.first][cur.second] + 1
+                    }
+                }
+
+                dist.forEachIndexed { x, ints ->
+                    ints.forEachIndexed { y, _ ->
+                        dist[x][y] = -1
+                    }
+                }
+            }
+        }
+        return ans
+    }
+
+    fun markAreaNumber(
+        input: Input
+    ): Array<IntArray> {
         val vis: Array<IntArray> = Array(size = input.n) { IntArray(size = input.m) }
         val queue: Queue<Pair<Int, Int>> = LinkedList()
         val dx = intArrayOf(1, 0, -1, 0)
         val dy = intArrayOf(0, 1, 0, -1)
-
-        queue.add(start)
-        vis[start.first][start.second] = 1
-
-        while (queue.isNotEmpty()) {
-            val cur = queue.remove()
-
-            for (i in 0..3) {
-                val next = cur.first + dx[i] to cur.second + dy[i]
-                if (checkBound(next, input)) continue
-                if (input.area[next.first][next.second] == startArea || vis[next.first][next.second] > 0) continue
-                if (input.area[next.first][next.second] != 0) return vis[cur.first][cur.second]
-                vis[next.first][next.second] = vis[cur.first][cur.second] + 1
-                queue.add(next)
-            }
-        }
-        return 0
-    }
-
-    fun markAreaNumber(
-        input: Input,
-        startPointsMap: MutableMap<Int, Set<Pair<Int, Int>>> = HashMap()
-    ): Array<IntArray> {
-        val vis: Array<IntArray> = Array(size = input.n) { IntArray(size = input.m)}
-        val queue: Queue<Pair<Int, Int>> = LinkedList()
-        val dx = intArrayOf(1, 0, -1, 0)
-        val dy = intArrayOf(0, 1, 0, -1)
         var areaNumber = 0
-        lateinit var startPoints: MutableSet<Pair<Int, Int>>
 
         repeat(input.n) { x ->
             repeat(input.m) { y ->
@@ -61,25 +83,22 @@ fun main() {
                     vis[x][y] = 1
                     areaNumber++
                     input.area[x][y] = areaNumber
-                    startPoints = HashSet()
+                }
 
-                    while (queue.isNotEmpty()) {
-                        val cur = queue.remove()
-                        for (i in 0..3) {
-                            val next = cur.first + dx[i] to cur.second + dy[i]
-                            if (checkBound(next, input)) continue
-                            if (input.area[next.first][next.second] == 0) {
-                                startPoints.add(next)
-                                continue
-                            }
-                            if (vis[next.first][next.second] == 1) continue
-
-                            input.area[next.first][next.second] = areaNumber
-                            vis[next.first][next.second] = 1
-                            queue.add(next)
+                while (queue.isNotEmpty()) {
+                    val cur = queue.remove()
+                    for (i in 0..3) {
+                        val next = cur.first + dx[i] to cur.second + dy[i]
+                        if (checkBound(next, input)) continue
+                        if (input.area[next.first][next.second] == 0) {
+                            continue
                         }
+                        if (vis[next.first][next.second] == 1) continue
+
+                        input.area[next.first][next.second] = areaNumber
+                        vis[next.first][next.second] = 1
+                        queue.add(next)
                     }
-                    startPointsMap.put(areaNumber, startPoints)
                 }
             }
         }
@@ -89,33 +108,23 @@ fun main() {
     val bufferedReader = BufferedReader(InputStreamReader(System.`in`))
     val bufferedWriter = BufferedWriter(OutputStreamWriter(System.out))
 
-    val fline = bufferedReader.readLine()
-    var tokenizer = StringTokenizer(fline)
+    val fLine = bufferedReader.readLine()
+    var tokenizer = StringTokenizer(fLine)
     val n = tokenizer.nextToken().toInt()
-    val m = n
+    val input = Input(n = n, m = n)
 
-    val input = Input(n, m)
     repeat(n) { x ->
         val line = bufferedReader.readLine()
         tokenizer = StringTokenizer(line)
-        repeat(m) { y ->
+        repeat(n) { y ->
             tokenizer.nextToken().toInt().let {
                 input.area[x][y] = it
             }
         }
     }
 
-    val startPoints = HashMap<Int, Set<Pair<Int, Int>>>()
-    input.area = markAreaNumber(input, startPoints)
-    val keys = startPoints.keys
-    var minCount: Int = Int.MAX_VALUE
-    for (key in keys) {
-        startPoints.getValue(key).forEach {
-            minCount = min(minCount, buildBridge(key, it, input))
-        }
-    }
-
-    bufferedWriter.append(minCount.toString()).flush()
+    input.area = markAreaNumber(input)
+    bufferedWriter.append(buildBridge(input).toString()).flush()
     bufferedWriter.close()
     bufferedReader.close()
 }
