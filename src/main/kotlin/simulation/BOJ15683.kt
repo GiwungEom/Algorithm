@@ -164,7 +164,9 @@ fun main() {
     val n = tokenizer.nextToken().toInt()
     val m = tokenizer.nextToken().toInt()
 
-    val office = Array(size = n) { IntArray(size = m) }
+    // cctv 마다 하나의 office 를 갖고 있음.
+    // 백트랙킹 시 이전 cctv 가 비추는 영역을 간섭하지 않게 함.
+    val office = Array(size = 8) { Array(size = n) { IntArray(size = m) } }
 
     var minBlindCount = Int.MAX_VALUE
 
@@ -174,7 +176,10 @@ fun main() {
         tokenizer = StringTokenizer(bufferedReader.readLine())
         repeat(m) { y ->
             val info = tokenizer.nextToken().toInt()
-            office[x][y] = info
+            for (i in 0 until 8) {
+                office[i][x][y] = info
+            }
+
             if (info in 1..5) cctvs.add(x to y)
         }
     }
@@ -192,35 +197,36 @@ fun main() {
     // 0 - cctv blind area
     fun getVision(power: Boolean): Int = if (power) 7 else 0
 
-    fun moveCctvTop(cctvPos: Pair<Int, Int>, power: Boolean) {
+    fun moveCctvTop(cctvIndex: Int, cctvPos: Pair<Int, Int>, power: Boolean) {
         for (i in cctvPos.first - 1 downTo  0) {
-            if (office[i][cctvPos.second] == 6) break
-            else office[i][cctvPos.second] = getVision(power)
+            if (office[cctvIndex][i][cctvPos.second] == 6) break
+            else office[cctvIndex][i][cctvPos.second] = getVision(power)
         }
     }
 
-    fun moveCctvRight(cctvPos: Pair<Int, Int>, power: Boolean) {
+    fun moveCctvRight(cctvIndex: Int, cctvPos: Pair<Int, Int>, power: Boolean) {
         for (i in cctvPos.second + 1 until m) {
-            if (office[cctvPos.first][i] == 6) break
-            else office[cctvPos.first][i] = getVision(power)
+            if (office[cctvIndex][cctvPos.first][i] == 6) break
+            else office[cctvIndex][cctvPos.first][i] = getVision(power)
         }
     }
 
-    fun moveCctvLeft(cctvPos: Pair<Int, Int>, power: Boolean) {
+    fun moveCctvLeft(cctvIndex: Int, cctvPos: Pair<Int, Int>, power: Boolean) {
         for (i in cctvPos.second - 1 downTo  0) {
-            if (office[cctvPos.first][i] == 6) break
-            else office[cctvPos.first][i] = getVision(power)
+            if (office[cctvIndex][cctvPos.first][i] == 6) break
+            else office[cctvIndex][cctvPos.first][i] = getVision(power)
         }
     }
 
-    fun moveCctvBottom(cctvPos: Pair<Int, Int>, power: Boolean) {
+    fun moveCctvBottom(cctvIndex: Int, cctvPos: Pair<Int, Int>, power: Boolean) {
         for (i in cctvPos.first + 1 until n) {
-            if (office[i][cctvPos.second] == 6) break
-            else office[i][cctvPos.second] = getVision(power)
+            if (office[cctvIndex][i][cctvPos.second] == 6) break
+            else office[cctvIndex][i][cctvPos.second] = getVision(power)
         }
     }
 
     fun moveCctv(
+        cctvIndex: Int,
         cctvPos: Pair<Int, Int>,
         cctvType: Int,
         angle: Int,
@@ -231,59 +237,59 @@ fun main() {
         // cctv 는 보이는 자리 이므로, power off 일때도 cctv 자리는 보이는 자리여야 함. (#)
         when (cctvType) {
             1 -> {
-                if (angle == 0) moveCctvTop(cctvPos, power)
-                else if (angle == 1) moveCctvRight(cctvPos, power)
-                else if (angle == 2) moveCctvBottom(cctvPos, power)
-                else moveCctvLeft(cctvPos, power)
+                if (angle == 0) moveCctvTop(cctvIndex, cctvPos, power)
+                else if (angle == 1) moveCctvRight(cctvIndex, cctvPos, power)
+                else if (angle == 2) moveCctvBottom(cctvIndex, cctvPos, power)
+                else moveCctvLeft(cctvIndex, cctvPos, power)
             }
             2 -> {
                 if (angle == 0) {
-                    moveCctvTop(cctvPos, power)
-                    moveCctvBottom(cctvPos, power)
+                    moveCctvTop(cctvIndex, cctvPos, power)
+                    moveCctvBottom(cctvIndex, cctvPos, power)
                 } else {
-                    moveCctvRight(cctvPos, power)
-                    moveCctvLeft(cctvPos, power)
+                    moveCctvRight(cctvIndex, cctvPos, power)
+                    moveCctvLeft(cctvIndex, cctvPos, power)
                 }
             }
             3 -> {
                 if (angle == 0) {
-                    moveCctvTop(cctvPos, power)
-                    moveCctvRight(cctvPos, power)
+                    moveCctvTop(cctvIndex, cctvPos, power)
+                    moveCctvRight(cctvIndex, cctvPos, power)
                 } else if (angle == 1) {
-                    moveCctvRight(cctvPos, power)
-                    moveCctvBottom(cctvPos, power)
+                    moveCctvRight(cctvIndex, cctvPos, power)
+                    moveCctvBottom(cctvIndex, cctvPos, power)
                 } else if (angle == 2) {
-                    moveCctvBottom(cctvPos, power)
-                    moveCctvLeft(cctvPos, power)
+                    moveCctvBottom(cctvIndex, cctvPos, power)
+                    moveCctvLeft(cctvIndex, cctvPos, power)
                 } else {
-                    moveCctvLeft(cctvPos, power)
-                    moveCctvTop(cctvPos, power)
+                    moveCctvLeft(cctvIndex, cctvPos, power)
+                    moveCctvTop(cctvIndex, cctvPos, power)
                 }
             }
             4 -> {
                 if (angle == 0) {
-                    moveCctvTop(cctvPos, power)
-                    moveCctvRight(cctvPos, power)
-                    moveCctvLeft(cctvPos, power)
+                    moveCctvTop(cctvIndex, cctvPos, power)
+                    moveCctvRight(cctvIndex, cctvPos, power)
+                    moveCctvLeft(cctvIndex, cctvPos, power)
                 } else if (angle == 1) {
-                    moveCctvTop(cctvPos, power)
-                    moveCctvRight(cctvPos, power)
-                    moveCctvBottom(cctvPos, power)
+                    moveCctvTop(cctvIndex, cctvPos, power)
+                    moveCctvRight(cctvIndex, cctvPos, power)
+                    moveCctvBottom(cctvIndex, cctvPos, power)
                 } else if (angle == 2) {
-                    moveCctvRight(cctvPos, power)
-                    moveCctvBottom(cctvPos, power)
-                    moveCctvLeft(cctvPos, power)
+                    moveCctvRight(cctvIndex, cctvPos, power)
+                    moveCctvBottom(cctvIndex, cctvPos, power)
+                    moveCctvLeft(cctvIndex, cctvPos, power)
                 } else {
-                    moveCctvBottom(cctvPos, power)
-                    moveCctvLeft(cctvPos, power)
-                    moveCctvTop(cctvPos, power)
+                    moveCctvBottom(cctvIndex, cctvPos, power)
+                    moveCctvLeft(cctvIndex, cctvPos, power)
+                    moveCctvTop(cctvIndex, cctvPos, power)
                 }
             }
             5 -> {
-                moveCctvBottom(cctvPos, power)
-                moveCctvLeft(cctvPos, power)
-                moveCctvTop(cctvPos, power)
-                moveCctvRight(cctvPos, power)
+                moveCctvBottom(cctvIndex, cctvPos, power)
+                moveCctvLeft(cctvIndex, cctvPos, power)
+                moveCctvTop(cctvIndex, cctvPos, power)
+                moveCctvRight(cctvIndex, cctvPos, power)
             }
             else -> throw IllegalStateException()
         }
@@ -293,9 +299,14 @@ fun main() {
         var blindCount = 0
         repeat(n) { x ->
             repeat(m) { y ->
-                if (office[x][y] == 0) {
-                    blindCount++
+                var blind = true
+                for (i in 0 until 8) {
+                    if (office[i][x][y] != 0) {
+                        blind = false
+                        break
+                    }
                 }
+                if (blind) blindCount++
             }
         }
         return blindCount
@@ -313,15 +324,15 @@ fun main() {
 
         // 백트래킹 상태를 갖고 있음
         val cctvPos = cctvs[cctvIndex]
-        val cctvType = office[cctvPos.first][cctvPos.second]
+        val cctvType = office[cctvIndex][cctvPos.first][cctvPos.second]
         val way = getWays(cctvType)
         // 90 도 방향 돌림 총 4 방향
         for (angle in 0..way) {
             // 돌려서 상태를 변경 시킴
-            moveCctv(cctvPos, cctvType, angle, true)
+            moveCctv(cctvIndex, cctvPos, cctvType, angle, true)
             func(cctvIndex + 1)
             // 변경 시킨 상태를 원복 시킴
-            moveCctv(cctvPos, cctvType, angle, false)
+            moveCctv(cctvIndex, cctvPos, cctvType, angle, false)
         }
     }
 
