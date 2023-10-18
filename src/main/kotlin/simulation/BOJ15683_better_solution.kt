@@ -18,7 +18,7 @@ fun main() {
     val m = tokenizer.nextToken().toInt()
 
     val office1 = Array(size = n) { IntArray(size = m) }
-    var office2 = Array(size = n) { IntArray(size = m) }
+    val office2 = Array(size = n) { IntArray(size = m) }
 
     val cctvs = ArrayList<Pair<Int, Int>>()
     val dx = intArrayOf(1, 0, -1, 0)
