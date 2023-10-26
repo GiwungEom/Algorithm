@@ -1,7 +1,13 @@
 package simulation
 
+import file.BOJIOReader
 import org.junit.jupiter.api.Test
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
 import java.util.*
+import kotlin.math.max
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
@@ -238,7 +244,7 @@ class BoardGameTest {
 
     @Test
     fun rotateQueueWithWayTest() {
-        var way = 2
+        val way = 2
 
         val queue: Queue<Int> = LinkedList()
         queue.add(0)
@@ -282,9 +288,62 @@ class BoardGameTest {
         }
     }
 
+    @Test
+    fun applicationTest() {
+        val example = BOJIOReader().example("BOJ12100.txt", 2)
+        val bufferedReader = BufferedReader(InputStreamReader(example.getInput()))
+        val bufferedWriter = BufferedWriter(OutputStreamWriter(example.outputStream))
+
+        val n = bufferedReader.readLine().toInt()
+        val board = Array(size = n) { IntArray(size = n) }
+        // 결과 저장
+        var maxNumber = 0
+
+        repeat(n) { row ->
+            val tokenizer = StringTokenizer(bufferedReader.readLine())
+            repeat(n) { col ->
+                board[row][col] = tokenizer.nextToken().toInt()
+            }
+        }
+
+        for (i in 0 until 1024) {
+            val boardCopy = board.copyOf()
+            val queue: Queue<Int> = LinkedList()
+            queue.add(0)
+            queue.add(1)
+            queue.add(2)
+            queue.add(3)
+
+            var brute = i
+            for (j in 0..4) {
+                val way = brute % 4
+                brute /= 4
+
+                while (queue.indexOf(1) != way) {
+                    rotate(boardCopy)
+                    queue.add(queue.remove())
+                }
+
+                moveElementTo(boardCopy)
+            }
+
+            repeat(n) { x ->
+                repeat(n) { y ->
+                    maxNumber = max(boardCopy[x][y], maxNumber)
+                }
+            }
+        }
+
+        bufferedWriter.append(maxNumber.toString()).flush()
+        bufferedWriter.close()
+        bufferedReader.close()
+
+        assertEquals(example.getOutput(), example.getResult())
+    }
+
     private fun rotate(board: Array<IntArray>): Array<IntArray> {
-        var r = board.size
-        var c = board[0].size
+        val r = board.size
+        val c = board[0].size
 
         val temp = Array(size = board.size) { IntArray(size = board[0].size) }
         for (x in 0 until r) {
