@@ -23,22 +23,25 @@ class BOJIOReader(
 
     fun example(
         name: String,
-        number: Int
+        number: Int = -1
     ): Example {
         return Example(
-            "$defaultPath/$name",
-            number
+            fileName = "$defaultPath/$name",
+            number = number
         )
     }
 }
 
 class Example(
     fileName: String,
-    private val number: Int
+    var number: Int
 ) {
 
-    private val iToken = "#${number}I"
-    private val oToken = "#${number}O"
+    private val iToken: String
+        get() = "#${number}I"
+    private val oToken: String
+        get() = "#${number}O"
+
     private val returnAscii = 10
     private val file: File
 
