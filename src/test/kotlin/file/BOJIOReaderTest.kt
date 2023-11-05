@@ -66,7 +66,7 @@ class BOJIOReaderTest {
 
     @Test
     fun exampleInputTest() {
-        val bufferedReader = BufferedReader(InputStreamReader(example.getInput()))
+        val bufferedReader = BufferedReader(InputStreamReader(example.inputStream))
         val expect: Queue<String> = LinkedList<String>().apply {
             add("3")
             add("2 2 2")

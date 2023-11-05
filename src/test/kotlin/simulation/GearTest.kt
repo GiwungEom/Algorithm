@@ -23,7 +23,7 @@ class GearTest {
 
     private fun getGears(): Array<Deque<Boolean>> {
         gears = Array(size = 4) { LinkedList() }
-        val bufferedReader = BufferedReader(InputStreamReader(example.getInput()))
+        val bufferedReader = BufferedReader(InputStreamReader(example.inputStream))
         bufferedReader.use {
             repeat(4) { row ->
                 val line = it.readLine().toCharArray()
@@ -78,7 +78,7 @@ class GearTest {
     @Test
     fun gearTest() {
         example.number = 2
-        BOJ14891().gear(example.getInput(), example.outputStream)
+        BOJ14891().gear(example.inputStream, example.outputStream)
         assertEquals(example.getOutput(), example.getResult())
     }
 }

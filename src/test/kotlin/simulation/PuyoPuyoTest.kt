@@ -18,7 +18,7 @@ class PuyoPuyoTest {
     fun setUp() {
         board = Array(size = 12) { CharArray(size = 6) }
         example = BOJIOReader().example("BOJ11559.txt", 1)
-        val bufferedReader = BufferedReader(InputStreamReader(example.getInput()))
+        val bufferedReader = BufferedReader(InputStreamReader(example.inputStream))
         repeat(12) { row ->
             val unit = bufferedReader.readLine().toCharArray()
             repeat(6) { column ->
@@ -65,7 +65,7 @@ class PuyoPuyoTest {
         // 중복 소스 없이 모델 구현이 가능할 것으로 보인다.
 
         val problem = BOJ11559()
-        problem.puyoPlay(example.getInput(), example.outputStream)
+        problem.puyoPlay(example.inputStream, example.outputStream)
         assertEquals(expected = example.getOutput(), actual = example.getResult())
     }
 }

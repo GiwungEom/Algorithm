@@ -9,7 +9,7 @@ class BOJ9095Test {
     @Test
     fun applicationTest() {
         val example = BOJIOReader().example("BOJ9095.txt", 1)
-        BOJ9095().calc(example.getInput(), example.outputStream)
+        BOJ9095().calc(example.inputStream, example.outputStream)
         assertEquals(example.getOutput(), example.getResult().trimIndent())
     }
 }

@@ -291,7 +291,7 @@ class BoardGameTest {
     @Test
     fun applicationTest() {
         val example = BOJIOReader().example("BOJ12100.txt", 2)
-        val bufferedReader = BufferedReader(InputStreamReader(example.getInput()))
+        val bufferedReader = BufferedReader(InputStreamReader(example.inputStream))
         val bufferedWriter = BufferedWriter(OutputStreamWriter(example.outputStream))
 
         val n = bufferedReader.readLine().toInt()

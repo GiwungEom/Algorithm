@@ -54,6 +54,7 @@ class Example(
         }
     }
 
+    // 문제 풀이 결과
     fun getResult(): String {
         return outputStream.toByteArray().toString(UTF_8)
     }
@@ -72,40 +73,76 @@ class Example(
         }
     }
 
-    fun getInput(): InputStream {
-        val offsetRange = file.inputStream().use {
-            val buffer = ByteArray(size = 1024)
-            var offset = 0
-            var length = 0
-            var sOffset = 0
-            val eOffset: Int
+    // 인풋 스트림
+    val inputStream: InputStream
+        get() {
+            val offsetRange = file.inputStream().use {
+                val buffer = ByteArray(size = 1024)
+                var offset = 0
+                var length = 0
+                var sOffset = 0
+                val eOffset: Int
 
-            while (true) {
-                val data = it.read()
-                if (data == -1) { throw IllegalStateException("Not Found Example $number") }
-                buffer[offset++] = data.toByte()
-                length++
-                if (data == returnAscii) {
-                    val line = String(buffer.copyOfRange(offset - length, offset - 1))
-                    if (line == iToken) {
-                        sOffset = offset
-                    }
-                    if (line == oToken) {
-                        eOffset = offset - length
-                        break
-                    }
+                while (true) {
+                    val data = it.read()
+                    if (data == -1) { throw IllegalStateException("Not Found Example $number") }
+                    buffer[offset++] = data.toByte()
+                    length++
+                    if (data == returnAscii) {
+                        val line = String(buffer.copyOfRange(offset - length, offset - 1))
+                        if (line == iToken) {
+                            sOffset = offset
+                        }
+                        if (line == oToken) {
+                            eOffset = offset - length
+                            break
+                        }
 
-                    length = 0
+                        length = 0
+                    }
                 }
+                return@use sOffset to eOffset
             }
-            return@use sOffset to eOffset
+
+            val byteArray = ByteArray(offsetRange.second - offsetRange.first)
+            file.range(byteArray, offsetRange.first, offsetRange.second)
+            return byteArray.inputStream()
         }
+//    fun inputStream: InputStream {
+//        val offsetRange = file.inputStream().use {
+//            val buffer = ByteArray(size = 1024)
+//            var offset = 0
+//            var length = 0
+//            var sOffset = 0
+//            val eOffset: Int
+//
+//            while (true) {
+//                val data = it.read()
+//                if (data == -1) { throw IllegalStateException("Not Found Example $number") }
+//                buffer[offset++] = data.toByte()
+//                length++
+//                if (data == returnAscii) {
+//                    val line = String(buffer.copyOfRange(offset - length, offset - 1))
+//                    if (line == iToken) {
+//                        sOffset = offset
+//                    }
+//                    if (line == oToken) {
+//                        eOffset = offset - length
+//                        break
+//                    }
+//
+//                    length = 0
+//                }
+//            }
+//            return@use sOffset to eOffset
+//        }
+//
+//        val byteArray = ByteArray(offsetRange.second - offsetRange.first)
+//        file.range(byteArray, offsetRange.first, offsetRange.second)
+//        return byteArray.inputStream()
+//    }
 
-        val byteArray = ByteArray(offsetRange.second - offsetRange.first)
-        file.range(byteArray, offsetRange.first, offsetRange.second)
-        return byteArray.inputStream()
-    }
-
+    // 예제 결과
     fun getOutput(): String {
         val offsetRange = file.inputStream().use {
             val buffer = ByteArray(size = 1024)
