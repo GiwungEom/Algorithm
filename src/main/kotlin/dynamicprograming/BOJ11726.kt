@@ -8,7 +8,7 @@ class BOJ11726 {
         val bufferedWriter = BufferedWriter(OutputStreamWriter(outputStream))
 
         val n = bufferedReader.readLine().toInt()
-        val d = IntArray(size = n + 1)
+        val d = IntArray(size = 10005)
 
         d[1] = 1
         d[2] = 2
