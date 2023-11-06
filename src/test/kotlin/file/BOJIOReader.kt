@@ -56,7 +56,7 @@ class Example(
 
     // 문제 풀이 결과
     fun getResult(): String {
-        return outputStream.toByteArray().toString(UTF_8)
+        return outputStream.toByteArray().toString(UTF_8).trimEnd()
     }
 
     fun numberExists(): Boolean {
